@@ -20,5 +20,5 @@ bindsym Control+l exec "sway_focus right"
 ' >> $sway_config_path
 
 #cython sway_focus.pyx --embed
-#gcc -Os -I /usr/include/python3.10 -o sway_focus2 sway_focus2.c -lpython3.10 -lpthread -lm -lutil -ldl
+#gcc -Os -I /usr/include/python3.10 -o sway_focus sway_focus.c -lpython3.10 -lpthread -lm -lutil -ldl
 

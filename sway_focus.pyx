@@ -27,6 +27,9 @@ def recvall(sock, payload_len):
             break
     return repr(data)
 
+def default(arg):
+    re, sock = call_sock(0, f"focus {arg}")
+
 #convert response to json
 def cleanup(sway_data):
     for index, char in enumerate(sway_data):
@@ -45,9 +48,8 @@ def cleanup(sway_data):
         except Exception as e:
             print(e)
             with open("erro.log", "w") as fp:
-                fp.write(data)
-            exit()
-            return data
+                fp.write(str(e))
+            return None
 
 def call_sock(p_type, message):
     magic = bytes("i3-ipc", "utf-8")
@@ -83,6 +85,9 @@ assert(len(sys.argv) > 1)
 arg = sys.argv[1]
 
 response ,sock = call_sock(4, '["GET_TREE"]')
+if response == None:
+    default(arg)
+    exit()
 
 if not is_vim_focused(response):
     re, sock = call_sock(0, f"focus {arg}")

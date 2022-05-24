@@ -1032,39 +1032,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject
 /* PyObjectCallOneArg.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
 
-/* PyIntBinop.proto */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
-#else
-#define __Pyx_PyInt_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
-    (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
-#endif
-
-/* IncludeStringH.proto */
-#include <string.h>
-
-/* BytesEquals.proto */
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* UnicodeEquals.proto */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* StrEquals.proto */
-#if PY_MAJOR_VERSION >= 3
-#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
-#else
-#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
-#endif
-
-/* None.proto */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
-
-/* SliceObject.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyObject_GetSlice(
-        PyObject* obj, Py_ssize_t cstart, Py_ssize_t cstop,
-        PyObject** py_start, PyObject** py_stop, PyObject** py_slice,
-        int has_cstart, int has_cstop, int wraparound);
-
 /* PyDictVersioning.proto */
 #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
 #define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
@@ -1111,6 +1078,73 @@ static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_ve
 #define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
 static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
 #endif
+
+/* PyObjectFormatSimple.proto */
+#if CYTHON_COMPILING_IN_PYPY
+    #define __Pyx_PyObject_FormatSimple(s, f) (\
+        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
+        PyObject_Format(s, f))
+#elif PY_MAJOR_VERSION < 3
+    #define __Pyx_PyObject_FormatSimple(s, f) (\
+        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
+        likely(PyString_CheckExact(s)) ? PyUnicode_FromEncodedObject(s, NULL, "strict") :\
+        PyObject_Format(s, f))
+#elif CYTHON_USE_TYPE_SLOTS
+    #define __Pyx_PyObject_FormatSimple(s, f) (\
+        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
+        likely(PyLong_CheckExact(s)) ? PyLong_Type.tp_str(s) :\
+        likely(PyFloat_CheckExact(s)) ? PyFloat_Type.tp_str(s) :\
+        PyObject_Format(s, f))
+#else
+    #define __Pyx_PyObject_FormatSimple(s, f) (\
+        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
+        PyObject_Format(s, f))
+#endif
+
+/* RaiseTooManyValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
+
+/* RaiseNeedMoreValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
+
+/* IterFinish.proto */
+static CYTHON_INLINE int __Pyx_IterFinish(void);
+
+/* UnpackItemEndCheck.proto */
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
+
+/* PyIntBinop.proto */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
+#else
+#define __Pyx_PyInt_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
+    (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
+#endif
+
+/* IncludeStringH.proto */
+#include <string.h>
+
+/* BytesEquals.proto */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* UnicodeEquals.proto */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* StrEquals.proto */
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
+#endif
+
+/* None.proto */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
+
+/* SliceObject.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetSlice(
+        PyObject* obj, Py_ssize_t cstart, Py_ssize_t cstop,
+        PyObject** py_start, PyObject** py_stop, PyObject** py_slice,
+        int has_cstart, int has_cstop, int wraparound);
 
 /* GetTopmostException.proto */
 #if CYTHON_USE_EXC_INFO_STACK
@@ -1258,40 +1292,6 @@ static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck);
 
-/* RaiseTooManyValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
-
-/* RaiseNeedMoreValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
-
-/* IterFinish.proto */
-static CYTHON_INLINE int __Pyx_IterFinish(void);
-
-/* UnpackItemEndCheck.proto */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
-
-/* PyObjectFormatSimple.proto */
-#if CYTHON_COMPILING_IN_PYPY
-    #define __Pyx_PyObject_FormatSimple(s, f) (\
-        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
-        PyObject_Format(s, f))
-#elif PY_MAJOR_VERSION < 3
-    #define __Pyx_PyObject_FormatSimple(s, f) (\
-        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
-        likely(PyString_CheckExact(s)) ? PyUnicode_FromEncodedObject(s, NULL, "strict") :\
-        PyObject_Format(s, f))
-#elif CYTHON_USE_TYPE_SLOTS
-    #define __Pyx_PyObject_FormatSimple(s, f) (\
-        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
-        likely(PyLong_CheckExact(s)) ? PyLong_Type.tp_str(s) :\
-        likely(PyFloat_CheckExact(s)) ? PyFloat_Type.tp_str(s) :\
-        PyObject_Format(s, f))
-#else
-    #define __Pyx_PyObject_FormatSimple(s, f) (\
-        likely(PyUnicode_CheckExact(s)) ? (Py_INCREF(s), s) :\
-        PyObject_Format(s, f))
-#endif
-
 /* ObjectGetItem.proto */
 #if CYTHON_USE_TYPE_SLOTS
 static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key);
@@ -1379,9 +1379,9 @@ extern int __pyx_module_is_main_sway_focus;
 int __pyx_module_is_main_sway_focus = 0;
 
 /* Implementation of 'sway_focus' */
+static PyObject *__pyx_builtin_exit;
 static PyObject *__pyx_builtin_enumerate;
 static PyObject *__pyx_builtin_open;
-static PyObject *__pyx_builtin_exit;
 static const char __pyx_k_[] = "";
 static const char __pyx_k_e[] = "e";
 static const char __pyx_k_h[] = "h";
@@ -1446,6 +1446,7 @@ static const char __pyx_k__3[] = "{";
   static const char __pyx_k_AF_UNIX[] = "AF_UNIX";
   static const char __pyx_k_cleanup[] = "cleanup";
   static const char __pyx_k_connect[] = "connect";
+  static const char __pyx_k_default[] = "default";
   static const char __pyx_k_focused[] = "focused";
   static const char __pyx_k_message[] = "message";
   static const char __pyx_k_recvall[] = "recvall";
@@ -1490,6 +1491,7 @@ static const char __pyx_k__3[] = "{";
   static PyObject *__pyx_n_s_cline_in_traceback;
   static PyObject *__pyx_n_s_connect;
   static PyObject *__pyx_n_s_data;
+  static PyObject *__pyx_n_s_default;
   static PyObject *__pyx_n_s_delim;
   static PyObject *__pyx_n_s_down;
   static PyObject *__pyx_n_s_e;
@@ -1563,9 +1565,10 @@ static const char __pyx_k__3[] = "{";
   static PyObject *__pyx_n_s_write;
   static PyObject *__pyx_kp_u_wtype_M_ctrl;
 static PyObject *__pyx_pf_10sway_focus_recvall(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sock, PyObject *__pyx_v_payload_len); /* proto */
-static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sway_data); /* proto */
-static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_p_type, PyObject *__pyx_v_message); /* proto */
-static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_root); /* proto */
+static PyObject *__pyx_pf_10sway_focus_2default(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_arg); /* proto */
+static PyObject *__pyx_pf_10sway_focus_4cleanup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sway_data); /* proto */
+static PyObject *__pyx_pf_10sway_focus_6call_sock(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_p_type, PyObject *__pyx_v_message); /* proto */
+static PyObject *__pyx_pf_10sway_focus_8is_vim_focused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_root); /* proto */
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_4;
@@ -1582,10 +1585,12 @@ static PyObject *__pyx_tuple__11;
 static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__15;
 static PyObject *__pyx_tuple__17;
+static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_codeobj__10;
 static PyObject *__pyx_codeobj__12;
 static PyObject *__pyx_codeobj__14;
 static PyObject *__pyx_codeobj__16;
+static PyObject *__pyx_codeobj__18;
 /* Late includes */
 
 /* "sway_focus.pyx":14
@@ -1849,7 +1854,7 @@ static PyObject *__pyx_pf_10sway_focus_recvall(CYTHON_UNUSED PyObject *__pyx_sel
  *             break
  *     return repr(data)             # <<<<<<<<<<<<<<
  * 
- * #convert response to json
+ * def default(arg):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2 = PyObject_Repr(__pyx_v_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
@@ -1882,7 +1887,185 @@ static PyObject *__pyx_pf_10sway_focus_recvall(CYTHON_UNUSED PyObject *__pyx_sel
   return __pyx_r;
 }
 
-/* "sway_focus.pyx":31
+/* "sway_focus.pyx":30
+ *     return repr(data)
+ * 
+ * def default(arg):             # <<<<<<<<<<<<<<
+ *     re, sock = call_sock(0, f"focus {arg}")
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_10sway_focus_3default(PyObject *__pyx_self, PyObject *__pyx_v_arg); /*proto*/
+static PyMethodDef __pyx_mdef_10sway_focus_3default = {"default", (PyCFunction)__pyx_pw_10sway_focus_3default, METH_O, 0};
+static PyObject *__pyx_pw_10sway_focus_3default(PyObject *__pyx_self, PyObject *__pyx_v_arg) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("default (wrapper)", 0);
+  __pyx_r = __pyx_pf_10sway_focus_2default(__pyx_self, ((PyObject *)__pyx_v_arg));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_10sway_focus_2default(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_arg) {
+  CYTHON_UNUSED PyObject *__pyx_v_re = NULL;
+  CYTHON_UNUSED PyObject *__pyx_v_sock = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *(*__pyx_t_7)(PyObject *);
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("default", 0);
+
+  /* "sway_focus.pyx":31
+ * 
+ * def default(arg):
+ *     re, sock = call_sock(0, f"focus {arg}")             # <<<<<<<<<<<<<<
+ * 
+ * #convert response to json
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_FormatSimple(__pyx_v_arg, __pyx_empty_unicode); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyUnicode_Concat(__pyx_kp_u_focus, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  __pyx_t_5 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_5 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_0, __pyx_t_4};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_0, __pyx_t_4};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  } else
+  #endif
+  {
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    }
+    __Pyx_INCREF(__pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_6, 0+__pyx_t_5, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_t_4);
+    __pyx_t_4 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
+    PyObject* sequence = __pyx_t_1;
+    Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
+    if (unlikely(size != 2)) {
+      if (size > 2) __Pyx_RaiseTooManyValuesError(2);
+      else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+      __PYX_ERR(0, 31, __pyx_L1_error)
+    }
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    if (likely(PyTuple_CheckExact(sequence))) {
+      __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_6 = PyTuple_GET_ITEM(sequence, 1); 
+    } else {
+      __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_6 = PyList_GET_ITEM(sequence, 1); 
+    }
+    __Pyx_INCREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_t_6);
+    #else
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    #endif
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  } else {
+    Py_ssize_t index = -1;
+    __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_7 = Py_TYPE(__pyx_t_4)->tp_iternext;
+    index = 0; __pyx_t_2 = __pyx_t_7(__pyx_t_4); if (unlikely(!__pyx_t_2)) goto __pyx_L3_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_2);
+    index = 1; __pyx_t_6 = __pyx_t_7(__pyx_t_4); if (unlikely(!__pyx_t_6)) goto __pyx_L3_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_6);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_4), 2) < 0) __PYX_ERR(0, 31, __pyx_L1_error)
+    __pyx_t_7 = NULL;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    goto __pyx_L4_unpacking_done;
+    __pyx_L3_unpacking_failed:;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_7 = NULL;
+    if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+    __PYX_ERR(0, 31, __pyx_L1_error)
+    __pyx_L4_unpacking_done:;
+  }
+  __pyx_v_re = __pyx_t_2;
+  __pyx_t_2 = 0;
+  __pyx_v_sock = __pyx_t_6;
+  __pyx_t_6 = 0;
+
+  /* "sway_focus.pyx":30
+ *     return repr(data)
+ * 
+ * def default(arg):             # <<<<<<<<<<<<<<
+ *     re, sock = call_sock(0, f"focus {arg}")
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("sway_focus.default", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_re);
+  __Pyx_XDECREF(__pyx_v_sock);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "sway_focus.pyx":34
  * 
  * #convert response to json
  * def cleanup(sway_data):             # <<<<<<<<<<<<<<
@@ -1891,20 +2074,20 @@ static PyObject *__pyx_pf_10sway_focus_recvall(CYTHON_UNUSED PyObject *__pyx_sel
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_10sway_focus_3cleanup(PyObject *__pyx_self, PyObject *__pyx_v_sway_data); /*proto*/
-static PyMethodDef __pyx_mdef_10sway_focus_3cleanup = {"cleanup", (PyCFunction)__pyx_pw_10sway_focus_3cleanup, METH_O, 0};
-static PyObject *__pyx_pw_10sway_focus_3cleanup(PyObject *__pyx_self, PyObject *__pyx_v_sway_data) {
+static PyObject *__pyx_pw_10sway_focus_5cleanup(PyObject *__pyx_self, PyObject *__pyx_v_sway_data); /*proto*/
+static PyMethodDef __pyx_mdef_10sway_focus_5cleanup = {"cleanup", (PyCFunction)__pyx_pw_10sway_focus_5cleanup, METH_O, 0};
+static PyObject *__pyx_pw_10sway_focus_5cleanup(PyObject *__pyx_self, PyObject *__pyx_v_sway_data) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cleanup (wrapper)", 0);
-  __pyx_r = __pyx_pf_10sway_focus_2cleanup(__pyx_self, ((PyObject *)__pyx_v_sway_data));
+  __pyx_r = __pyx_pf_10sway_focus_4cleanup(__pyx_self, ((PyObject *)__pyx_v_sway_data));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sway_data) {
+static PyObject *__pyx_pf_10sway_focus_4cleanup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sway_data) {
   PyObject *__pyx_v_index = NULL;
   PyObject *__pyx_v_char = NULL;
   PyObject *__pyx_v_delim = NULL;
@@ -1945,7 +2128,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("cleanup", 0);
 
-  /* "sway_focus.pyx":32
+  /* "sway_focus.pyx":35
  * #convert response to json
  * def cleanup(sway_data):
  *     for index, char in enumerate(sway_data):             # <<<<<<<<<<<<<<
@@ -1958,26 +2141,26 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_t_2 = __pyx_v_sway_data; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_sway_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_sway_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_4)) {
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
         #else
-        __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 35, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
         #else
-        __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 35, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         #endif
       }
@@ -1987,7 +2170,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 32, __pyx_L1_error)
+          else __PYX_ERR(0, 35, __pyx_L1_error)
         }
         break;
       }
@@ -1997,31 +2180,31 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_t_5 = 0;
     __Pyx_INCREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_1);
-    __pyx_t_5 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 35, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1);
     __pyx_t_1 = __pyx_t_5;
     __pyx_t_5 = 0;
 
-    /* "sway_focus.pyx":33
+    /* "sway_focus.pyx":36
  * def cleanup(sway_data):
  *     for index, char in enumerate(sway_data):
  *         if char == '[' or char == '{':             # <<<<<<<<<<<<<<
  *             delim = index
  *             break
  */
-    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_char, __pyx_kp_s__2, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_char, __pyx_kp_s__2, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 36, __pyx_L1_error)
     if (!__pyx_t_7) {
     } else {
       __pyx_t_6 = __pyx_t_7;
       goto __pyx_L6_bool_binop_done;
     }
-    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_char, __pyx_kp_s__3, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_char, __pyx_kp_s__3, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 36, __pyx_L1_error)
     __pyx_t_6 = __pyx_t_7;
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_6) {
 
-      /* "sway_focus.pyx":34
+      /* "sway_focus.pyx":37
  *     for index, char in enumerate(sway_data):
  *         if char == '[' or char == '{':
  *             delim = index             # <<<<<<<<<<<<<<
@@ -2031,7 +2214,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
       __Pyx_INCREF(__pyx_v_index);
       __pyx_v_delim = __pyx_v_index;
 
-      /* "sway_focus.pyx":35
+      /* "sway_focus.pyx":38
  *         if char == '[' or char == '{':
  *             delim = index
  *             break             # <<<<<<<<<<<<<<
@@ -2040,7 +2223,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
  */
       goto __pyx_L4_break;
 
-      /* "sway_focus.pyx":33
+      /* "sway_focus.pyx":36
  * def cleanup(sway_data):
  *     for index, char in enumerate(sway_data):
  *         if char == '[' or char == '{':             # <<<<<<<<<<<<<<
@@ -2049,7 +2232,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
  */
     }
 
-    /* "sway_focus.pyx":32
+    /* "sway_focus.pyx":35
  * #convert response to json
  * def cleanup(sway_data):
  *     for index, char in enumerate(sway_data):             # <<<<<<<<<<<<<<
@@ -2061,20 +2244,20 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":36
+  /* "sway_focus.pyx":39
  *             delim = index
  *             break
  *     data = sway_data[delim: -1]             # <<<<<<<<<<<<<<
  *     try:
  *         _json = json.loads(data)
  */
-  if (unlikely(!__pyx_v_delim)) { __Pyx_RaiseUnboundLocalError("delim"); __PYX_ERR(0, 36, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_sway_data, 0, -1L, &__pyx_v_delim, NULL, NULL, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (unlikely(!__pyx_v_delim)) { __Pyx_RaiseUnboundLocalError("delim"); __PYX_ERR(0, 39, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_sway_data, 0, -1L, &__pyx_v_delim, NULL, NULL, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_data = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":37
+  /* "sway_focus.pyx":40
  *             break
  *     data = sway_data[delim: -1]
  *     try:             # <<<<<<<<<<<<<<
@@ -2090,16 +2273,16 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     __Pyx_XGOTREF(__pyx_t_10);
     /*try:*/ {
 
-      /* "sway_focus.pyx":38
+      /* "sway_focus.pyx":41
  *     data = sway_data[delim: -1]
  *     try:
  *         _json = json.loads(data)             # <<<<<<<<<<<<<<
  *         return _json
  *     except Exception as e:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_json); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L8_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_json); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L8_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_loads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 38, __pyx_L8_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_loads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 41, __pyx_L8_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_2 = NULL;
@@ -2114,13 +2297,13 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
       }
       __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_2, __pyx_v_data) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_data);
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L8_error)
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L8_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_v__json = __pyx_t_1;
       __pyx_t_1 = 0;
 
-      /* "sway_focus.pyx":39
+      /* "sway_focus.pyx":42
  *     try:
  *         _json = json.loads(data)
  *         return _json             # <<<<<<<<<<<<<<
@@ -2132,7 +2315,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
       __pyx_r = __pyx_v__json;
       goto __pyx_L12_try_return;
 
-      /* "sway_focus.pyx":37
+      /* "sway_focus.pyx":40
  *             break
  *     data = sway_data[delim: -1]
  *     try:             # <<<<<<<<<<<<<<
@@ -2145,7 +2328,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "sway_focus.pyx":40
+    /* "sway_focus.pyx":43
  *         _json = json.loads(data)
  *         return _json
  *     except Exception as e:             # <<<<<<<<<<<<<<
@@ -2155,14 +2338,14 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_t_11 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
     if (__pyx_t_11) {
       __Pyx_AddTraceback("sway_focus.cleanup", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_5, &__pyx_t_2) < 0) __PYX_ERR(0, 40, __pyx_L10_except_error)
+      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_5, &__pyx_t_2) < 0) __PYX_ERR(0, 43, __pyx_L10_except_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_INCREF(__pyx_t_5);
       __pyx_v_e = __pyx_t_5;
 
-      /* "sway_focus.pyx":42
+      /* "sway_focus.pyx":45
  *     except Exception as e:
  *         #attemp to fix invalid \ when focused qtbrowser
  *         try:             # <<<<<<<<<<<<<<
@@ -2178,23 +2361,23 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
         __Pyx_XGOTREF(__pyx_t_14);
         /*try:*/ {
 
-          /* "sway_focus.pyx":43
+          /* "sway_focus.pyx":46
  *         #attemp to fix invalid \ when focused qtbrowser
  *         try:
  *             data = json.loads(data.translate({ord('\\') : None}))             # <<<<<<<<<<<<<<
  *             return data
  *         except Exception as e:
  */
-          __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_n_s_json); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 43, __pyx_L16_error)
+          __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_n_s_json); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_16);
-          __pyx_t_17 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_loads); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 43, __pyx_L16_error)
+          __pyx_t_17 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_loads); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_17);
           __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          __pyx_t_18 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_translate); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 43, __pyx_L16_error)
+          __pyx_t_18 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_translate); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_18);
-          __pyx_t_19 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 43, __pyx_L16_error)
+          __pyx_t_19 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_19);
-          if (PyDict_SetItem(__pyx_t_19, __pyx_int_92, Py_None) < 0) __PYX_ERR(0, 43, __pyx_L16_error)
+          if (PyDict_SetItem(__pyx_t_19, __pyx_int_92, Py_None) < 0) __PYX_ERR(0, 46, __pyx_L16_error)
           __pyx_t_20 = NULL;
           if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_18))) {
             __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_18);
@@ -2208,7 +2391,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
           __pyx_t_16 = (__pyx_t_20) ? __Pyx_PyObject_Call2Args(__pyx_t_18, __pyx_t_20, __pyx_t_19) : __Pyx_PyObject_CallOneArg(__pyx_t_18, __pyx_t_19);
           __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
           __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-          if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 43, __pyx_L16_error)
+          if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_16);
           __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
           __pyx_t_18 = NULL;
@@ -2224,13 +2407,13 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
           __pyx_t_15 = (__pyx_t_18) ? __Pyx_PyObject_Call2Args(__pyx_t_17, __pyx_t_18, __pyx_t_16) : __Pyx_PyObject_CallOneArg(__pyx_t_17, __pyx_t_16);
           __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
           __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 43, __pyx_L16_error)
+          if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 46, __pyx_L16_error)
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
           __Pyx_DECREF_SET(__pyx_v_data, __pyx_t_15);
           __pyx_t_15 = 0;
 
-          /* "sway_focus.pyx":44
+          /* "sway_focus.pyx":47
  *         try:
  *             data = json.loads(data.translate({ord('\\') : None}))
  *             return data             # <<<<<<<<<<<<<<
@@ -2245,7 +2428,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           goto __pyx_L20_try_return;
 
-          /* "sway_focus.pyx":42
+          /* "sway_focus.pyx":45
  *     except Exception as e:
  *         #attemp to fix invalid \ when focused qtbrowser
  *         try:             # <<<<<<<<<<<<<<
@@ -2261,7 +2444,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
         __Pyx_XDECREF(__pyx_t_19); __pyx_t_19 = 0;
         __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
 
-        /* "sway_focus.pyx":45
+        /* "sway_focus.pyx":48
  *             data = json.loads(data.translate({ord('\\') : None}))
  *             return data
  *         except Exception as e:             # <<<<<<<<<<<<<<
@@ -2271,35 +2454,35 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
         __pyx_t_11 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
         if (__pyx_t_11) {
           __Pyx_AddTraceback("sway_focus.cleanup", __pyx_clineno, __pyx_lineno, __pyx_filename);
-          if (__Pyx_GetException(&__pyx_t_15, &__pyx_t_17, &__pyx_t_16) < 0) __PYX_ERR(0, 45, __pyx_L18_except_error)
+          if (__Pyx_GetException(&__pyx_t_15, &__pyx_t_17, &__pyx_t_16) < 0) __PYX_ERR(0, 48, __pyx_L18_except_error)
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_GOTREF(__pyx_t_17);
           __Pyx_GOTREF(__pyx_t_16);
           __Pyx_INCREF(__pyx_t_17);
           __Pyx_DECREF_SET(__pyx_v_e, __pyx_t_17);
 
-          /* "sway_focus.pyx":46
+          /* "sway_focus.pyx":49
  *             return data
  *         except Exception as e:
  *             print(e)             # <<<<<<<<<<<<<<
  *             with open("erro.log", "w") as fp:
- *                 fp.write(data)
+ *                 fp.write(str(e))
  */
-          if (__Pyx_PrintOne(0, __pyx_v_e) < 0) __PYX_ERR(0, 46, __pyx_L18_except_error)
+          if (__Pyx_PrintOne(0, __pyx_v_e) < 0) __PYX_ERR(0, 49, __pyx_L18_except_error)
 
-          /* "sway_focus.pyx":47
+          /* "sway_focus.pyx":50
  *         except Exception as e:
  *             print(e)
  *             with open("erro.log", "w") as fp:             # <<<<<<<<<<<<<<
- *                 fp.write(data)
- *             exit()
+ *                 fp.write(str(e))
+ *             return None
  */
           /*with:*/ {
-            __pyx_t_18 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 47, __pyx_L18_except_error)
+            __pyx_t_18 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 50, __pyx_L18_except_error)
             __Pyx_GOTREF(__pyx_t_18);
-            __pyx_t_21 = __Pyx_PyObject_LookupSpecial(__pyx_t_18, __pyx_n_s_exit_2); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 47, __pyx_L18_except_error)
+            __pyx_t_21 = __Pyx_PyObject_LookupSpecial(__pyx_t_18, __pyx_n_s_exit_2); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 50, __pyx_L18_except_error)
             __Pyx_GOTREF(__pyx_t_21);
-            __pyx_t_20 = __Pyx_PyObject_LookupSpecial(__pyx_t_18, __pyx_n_s_enter); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 47, __pyx_L26_error)
+            __pyx_t_20 = __Pyx_PyObject_LookupSpecial(__pyx_t_18, __pyx_n_s_enter); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 50, __pyx_L26_error)
             __Pyx_GOTREF(__pyx_t_20);
             __pyx_t_22 = NULL;
             if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
@@ -2313,7 +2496,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
             }
             __pyx_t_19 = (__pyx_t_22) ? __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_t_22) : __Pyx_PyObject_CallNoArg(__pyx_t_20);
             __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
-            if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 47, __pyx_L26_error)
+            if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 50, __pyx_L26_error)
             __Pyx_GOTREF(__pyx_t_19);
             __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
             __pyx_t_20 = __pyx_t_19;
@@ -2331,38 +2514,41 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
                   __pyx_v_fp = __pyx_t_20;
                   __pyx_t_20 = 0;
 
-                  /* "sway_focus.pyx":48
+                  /* "sway_focus.pyx":51
  *             print(e)
  *             with open("erro.log", "w") as fp:
- *                 fp.write(data)             # <<<<<<<<<<<<<<
- *             exit()
- *             return data
+ *                 fp.write(str(e))             # <<<<<<<<<<<<<<
+ *             return None
+ * 
  */
-                  __pyx_t_18 = __Pyx_PyObject_GetAttrStr(__pyx_v_fp, __pyx_n_s_write); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 48, __pyx_L32_error)
+                  __pyx_t_18 = __Pyx_PyObject_GetAttrStr(__pyx_v_fp, __pyx_n_s_write); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 51, __pyx_L32_error)
                   __Pyx_GOTREF(__pyx_t_18);
-                  __pyx_t_19 = NULL;
+                  __pyx_t_19 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_v_e); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 51, __pyx_L32_error)
+                  __Pyx_GOTREF(__pyx_t_19);
+                  __pyx_t_22 = NULL;
                   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_18))) {
-                    __pyx_t_19 = PyMethod_GET_SELF(__pyx_t_18);
-                    if (likely(__pyx_t_19)) {
+                    __pyx_t_22 = PyMethod_GET_SELF(__pyx_t_18);
+                    if (likely(__pyx_t_22)) {
                       PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_18);
-                      __Pyx_INCREF(__pyx_t_19);
+                      __Pyx_INCREF(__pyx_t_22);
                       __Pyx_INCREF(function);
                       __Pyx_DECREF_SET(__pyx_t_18, function);
                     }
                   }
-                  __pyx_t_20 = (__pyx_t_19) ? __Pyx_PyObject_Call2Args(__pyx_t_18, __pyx_t_19, __pyx_v_data) : __Pyx_PyObject_CallOneArg(__pyx_t_18, __pyx_v_data);
-                  __Pyx_XDECREF(__pyx_t_19); __pyx_t_19 = 0;
-                  if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 48, __pyx_L32_error)
+                  __pyx_t_20 = (__pyx_t_22) ? __Pyx_PyObject_Call2Args(__pyx_t_18, __pyx_t_22, __pyx_t_19) : __Pyx_PyObject_CallOneArg(__pyx_t_18, __pyx_t_19);
+                  __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
+                  __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
+                  if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 51, __pyx_L32_error)
                   __Pyx_GOTREF(__pyx_t_20);
                   __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
                   __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
 
-                  /* "sway_focus.pyx":47
+                  /* "sway_focus.pyx":50
  *         except Exception as e:
  *             print(e)
  *             with open("erro.log", "w") as fp:             # <<<<<<<<<<<<<<
- *                 fp.write(data)
- *             exit()
+ *                 fp.write(str(e))
+ *             return None
  */
                 }
                 __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
@@ -2376,20 +2562,20 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
                 __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
                 /*except:*/ {
                   __Pyx_AddTraceback("sway_focus.cleanup", __pyx_clineno, __pyx_lineno, __pyx_filename);
-                  if (__Pyx_GetException(&__pyx_t_20, &__pyx_t_18, &__pyx_t_19) < 0) __PYX_ERR(0, 47, __pyx_L34_except_error)
+                  if (__Pyx_GetException(&__pyx_t_20, &__pyx_t_18, &__pyx_t_19) < 0) __PYX_ERR(0, 50, __pyx_L34_except_error)
                   __Pyx_GOTREF(__pyx_t_20);
                   __Pyx_GOTREF(__pyx_t_18);
                   __Pyx_GOTREF(__pyx_t_19);
-                  __pyx_t_22 = PyTuple_Pack(3, __pyx_t_20, __pyx_t_18, __pyx_t_19); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 47, __pyx_L34_except_error)
+                  __pyx_t_22 = PyTuple_Pack(3, __pyx_t_20, __pyx_t_18, __pyx_t_19); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 50, __pyx_L34_except_error)
                   __Pyx_GOTREF(__pyx_t_22);
                   __pyx_t_26 = __Pyx_PyObject_Call(__pyx_t_21, __pyx_t_22, NULL);
                   __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
                   __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-                  if (unlikely(!__pyx_t_26)) __PYX_ERR(0, 47, __pyx_L34_except_error)
+                  if (unlikely(!__pyx_t_26)) __PYX_ERR(0, 50, __pyx_L34_except_error)
                   __Pyx_GOTREF(__pyx_t_26);
                   __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_26);
                   __Pyx_DECREF(__pyx_t_26); __pyx_t_26 = 0;
-                  if (__pyx_t_6 < 0) __PYX_ERR(0, 47, __pyx_L34_except_error)
+                  if (__pyx_t_6 < 0) __PYX_ERR(0, 50, __pyx_L34_except_error)
                   __pyx_t_7 = ((!(__pyx_t_6 != 0)) != 0);
                   if (__pyx_t_7) {
                     __Pyx_GIVEREF(__pyx_t_20);
@@ -2397,7 +2583,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
                     __Pyx_XGIVEREF(__pyx_t_19);
                     __Pyx_ErrRestoreWithState(__pyx_t_20, __pyx_t_18, __pyx_t_19);
                     __pyx_t_20 = 0; __pyx_t_18 = 0; __pyx_t_19 = 0; 
-                    __PYX_ERR(0, 47, __pyx_L34_except_error)
+                    __PYX_ERR(0, 50, __pyx_L34_except_error)
                   }
                   __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
                   __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
@@ -2423,7 +2609,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
                 if (__pyx_t_21) {
                   __pyx_t_25 = __Pyx_PyObject_Call(__pyx_t_21, __pyx_tuple__5, NULL);
                   __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-                  if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 47, __pyx_L18_except_error)
+                  if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 50, __pyx_L18_except_error)
                   __Pyx_GOTREF(__pyx_t_25);
                   __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
                 }
@@ -2438,27 +2624,15 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
             __pyx_L43:;
           }
 
-          /* "sway_focus.pyx":49
+          /* "sway_focus.pyx":52
  *             with open("erro.log", "w") as fp:
- *                 fp.write(data)
- *             exit()             # <<<<<<<<<<<<<<
- *             return data
- * 
- */
-          __pyx_t_19 = __Pyx_PyObject_CallNoArg(__pyx_builtin_exit); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 49, __pyx_L18_except_error)
-          __Pyx_GOTREF(__pyx_t_19);
-          __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-
-          /* "sway_focus.pyx":50
- *                 fp.write(data)
- *             exit()
- *             return data             # <<<<<<<<<<<<<<
+ *                 fp.write(str(e))
+ *             return None             # <<<<<<<<<<<<<<
  * 
  * def call_sock(p_type, message):
  */
           __Pyx_XDECREF(__pyx_r);
-          __Pyx_INCREF(__pyx_v_data);
-          __pyx_r = __pyx_v_data;
+          __pyx_r = Py_None; __Pyx_INCREF(Py_None);
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -2470,7 +2644,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
         goto __pyx_L18_except_error;
         __pyx_L18_except_error:;
 
-        /* "sway_focus.pyx":42
+        /* "sway_focus.pyx":45
  *     except Exception as e:
  *         #attemp to fix invalid \ when focused qtbrowser
  *         try:             # <<<<<<<<<<<<<<
@@ -2499,7 +2673,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     goto __pyx_L10_except_error;
     __pyx_L10_except_error:;
 
-    /* "sway_focus.pyx":37
+    /* "sway_focus.pyx":40
  *             break
  *     data = sway_data[delim: -1]
  *     try:             # <<<<<<<<<<<<<<
@@ -2525,7 +2699,7 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
     goto __pyx_L0;
   }
 
-  /* "sway_focus.pyx":31
+  /* "sway_focus.pyx":34
  * 
  * #convert response to json
  * def cleanup(sway_data):             # <<<<<<<<<<<<<<
@@ -2560,8 +2734,8 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
   return __pyx_r;
 }
 
-/* "sway_focus.pyx":52
- *             return data
+/* "sway_focus.pyx":54
+ *             return None
  * 
  * def call_sock(p_type, message):             # <<<<<<<<<<<<<<
  *     magic = bytes("i3-ipc", "utf-8")
@@ -2569,9 +2743,9 @@ static PyObject *__pyx_pf_10sway_focus_2cleanup(CYTHON_UNUSED PyObject *__pyx_se
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_10sway_focus_5call_sock(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_10sway_focus_5call_sock = {"call_sock", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10sway_focus_5call_sock, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_10sway_focus_5call_sock(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_10sway_focus_7call_sock(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_10sway_focus_7call_sock = {"call_sock", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10sway_focus_7call_sock, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_10sway_focus_7call_sock(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_p_type = 0;
   PyObject *__pyx_v_message = 0;
   int __pyx_lineno = 0;
@@ -2603,11 +2777,11 @@ static PyObject *__pyx_pw_10sway_focus_5call_sock(PyObject *__pyx_self, PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_message)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("call_sock", 1, 2, 2, 1); __PYX_ERR(0, 52, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("call_sock", 1, 2, 2, 1); __PYX_ERR(0, 54, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "call_sock") < 0)) __PYX_ERR(0, 52, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "call_sock") < 0)) __PYX_ERR(0, 54, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2620,20 +2794,20 @@ static PyObject *__pyx_pw_10sway_focus_5call_sock(PyObject *__pyx_self, PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("call_sock", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 52, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("call_sock", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 54, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("sway_focus.call_sock", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_10sway_focus_4call_sock(__pyx_self, __pyx_v_p_type, __pyx_v_message);
+  __pyx_r = __pyx_pf_10sway_focus_6call_sock(__pyx_self, __pyx_v_p_type, __pyx_v_message);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_p_type, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pf_10sway_focus_6call_sock(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_p_type, PyObject *__pyx_v_message) {
   PyObject *__pyx_v_magic = NULL;
   PyObject *__pyx_v_length = NULL;
   PyObject *__pyx_v_s = NULL;
@@ -2656,26 +2830,26 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_INCREF(__pyx_v_p_type);
   __Pyx_INCREF(__pyx_v_message);
 
-  /* "sway_focus.pyx":53
+  /* "sway_focus.pyx":55
  * 
  * def call_sock(p_type, message):
  *     magic = bytes("i3-ipc", "utf-8")             # <<<<<<<<<<<<<<
  * 
  *     message = bytes(message, "utf-8")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)(&PyBytes_Type)), __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)(&PyBytes_Type)), __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_magic = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":55
+  /* "sway_focus.pyx":57
  *     magic = bytes("i3-ipc", "utf-8")
  * 
  *     message = bytes(message, "utf-8")             # <<<<<<<<<<<<<<
  *     p_type = p_type
  *     p_type = p_type.to_bytes(4, byteorder = sys.byteorder)
  */
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_message);
   __Pyx_GIVEREF(__pyx_v_message);
@@ -2683,13 +2857,13 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_INCREF(__pyx_kp_s_utf_8);
   __Pyx_GIVEREF(__pyx_kp_s_utf_8);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_kp_s_utf_8);
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyBytes_Type)), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyBytes_Type)), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF_SET(__pyx_v_message, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "sway_focus.pyx":56
+  /* "sway_focus.pyx":58
  * 
  *     message = bytes(message, "utf-8")
  *     p_type = p_type             # <<<<<<<<<<<<<<
@@ -2699,80 +2873,80 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_INCREF(__pyx_v_p_type);
   __Pyx_DECREF_SET(__pyx_v_p_type, __pyx_v_p_type);
 
-  /* "sway_focus.pyx":57
+  /* "sway_focus.pyx":59
  *     message = bytes(message, "utf-8")
  *     p_type = p_type
  *     p_type = p_type.to_bytes(4, byteorder = sys.byteorder)             # <<<<<<<<<<<<<<
  *     length = len(message).to_bytes(4, byteorder = sys.byteorder)
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_p_type, __pyx_n_s_to_bytes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_p_type, __pyx_n_s_to_bytes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_sys); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_sys); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_byteorder); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_byteorder); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_byteorder, __pyx_t_4) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_byteorder, __pyx_t_4) < 0) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__7, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__7, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF_SET(__pyx_v_p_type, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "sway_focus.pyx":58
+  /* "sway_focus.pyx":60
  *     p_type = p_type
  *     p_type = p_type.to_bytes(4, byteorder = sys.byteorder)
  *     length = len(message).to_bytes(4, byteorder = sys.byteorder)             # <<<<<<<<<<<<<<
  * 
  *     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
  */
-  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 58, __pyx_L1_error)
-  __pyx_t_4 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_5 = PyObject_Length(__pyx_v_message); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_4 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_to_bytes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_to_bytes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_byteorder); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_byteorder); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_byteorder, __pyx_t_3) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_byteorder, __pyx_t_3) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__7, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__7, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_length = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":60
+  /* "sway_focus.pyx":62
  *     length = len(message).to_bytes(4, byteorder = sys.byteorder)
  * 
  *     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)             # <<<<<<<<<<<<<<
  *     s.connect(os.getenv("SWAYSOCK"))
  *     s.send(magic+length+p_type+message)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_AF_UNIX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_AF_UNIX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_socket); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_SOCK_STREAM); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_SOCK_STREAM); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -2790,7 +2964,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_2, __pyx_t_6};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2800,7 +2974,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_2, __pyx_t_6};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2808,7 +2982,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -2819,7 +2993,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_6);
     __pyx_t_2 = 0;
     __pyx_t_6 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
@@ -2827,18 +3001,18 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __pyx_v_s = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":61
+  /* "sway_focus.pyx":63
  * 
  *     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
  *     s.connect(os.getenv("SWAYSOCK"))             # <<<<<<<<<<<<<<
  *     s.send(magic+length+p_type+message)
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_connect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_connect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_os); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_os); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_getenv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_getenv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_t_6 = NULL;
@@ -2853,7 +3027,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   }
   __pyx_t_8 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_6, __pyx_n_s_SWAYSOCK) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_n_s_SWAYSOCK);
   __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 61, __pyx_L1_error)
+  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2869,26 +3043,26 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, __pyx_t_8) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_8);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":62
+  /* "sway_focus.pyx":64
  *     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
  *     s.connect(os.getenv("SWAYSOCK"))
  *     s.send(magic+length+p_type+message)             # <<<<<<<<<<<<<<
  * 
  *     data = recvall(s, 14)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_send); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_send); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = PyNumber_Add(__pyx_v_magic, __pyx_v_length); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_8 = PyNumber_Add(__pyx_v_magic, __pyx_v_length); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_8, __pyx_v_p_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_8, __pyx_v_p_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = PyNumber_Add(__pyx_t_2, __pyx_v_message); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_8 = PyNumber_Add(__pyx_t_2, __pyx_v_message); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2904,19 +3078,19 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, __pyx_t_8) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_8);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":64
+  /* "sway_focus.pyx":66
  *     s.send(magic+length+p_type+message)
  * 
  *     data = recvall(s, 14)             # <<<<<<<<<<<<<<
  *     _json = cleanup(data)
  *     return _json,s
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_recvall); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_recvall); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_8 = NULL;
   __pyx_t_7 = 0;
@@ -2933,7 +3107,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_v_s, __pyx_int_14};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else
@@ -2941,13 +3115,13 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_v_s, __pyx_int_14};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else
   #endif
   {
-    __pyx_t_2 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     if (__pyx_t_8) {
       __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -2958,7 +3132,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
     __Pyx_INCREF(__pyx_int_14);
     __Pyx_GIVEREF(__pyx_int_14);
     PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_7, __pyx_int_14);
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
@@ -2966,14 +3140,14 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __pyx_v_data = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":65
+  /* "sway_focus.pyx":67
  * 
  *     data = recvall(s, 14)
  *     _json = cleanup(data)             # <<<<<<<<<<<<<<
  *     return _json,s
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_cleanup); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_cleanup); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
@@ -2987,13 +3161,13 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   }
   __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, __pyx_v_data) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_data);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v__json = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":66
+  /* "sway_focus.pyx":68
  *     data = recvall(s, 14)
  *     _json = cleanup(data)
  *     return _json,s             # <<<<<<<<<<<<<<
@@ -3001,7 +3175,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v__json);
   __Pyx_GIVEREF(__pyx_v__json);
@@ -3013,8 +3187,8 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "sway_focus.pyx":52
- *             return data
+  /* "sway_focus.pyx":54
+ *             return None
  * 
  * def call_sock(p_type, message):             # <<<<<<<<<<<<<<
  *     magic = bytes("i3-ipc", "utf-8")
@@ -3044,7 +3218,7 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
   return __pyx_r;
 }
 
-/* "sway_focus.pyx":69
+/* "sway_focus.pyx":71
  * 
  * 
  * def is_vim_focused(root):             # <<<<<<<<<<<<<<
@@ -3053,20 +3227,20 @@ static PyObject *__pyx_pf_10sway_focus_4call_sock(CYTHON_UNUSED PyObject *__pyx_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_10sway_focus_7is_vim_focused(PyObject *__pyx_self, PyObject *__pyx_v_root); /*proto*/
-static PyMethodDef __pyx_mdef_10sway_focus_7is_vim_focused = {"is_vim_focused", (PyCFunction)__pyx_pw_10sway_focus_7is_vim_focused, METH_O, 0};
-static PyObject *__pyx_pw_10sway_focus_7is_vim_focused(PyObject *__pyx_self, PyObject *__pyx_v_root) {
+static PyObject *__pyx_pw_10sway_focus_9is_vim_focused(PyObject *__pyx_self, PyObject *__pyx_v_root); /*proto*/
+static PyMethodDef __pyx_mdef_10sway_focus_9is_vim_focused = {"is_vim_focused", (PyCFunction)__pyx_pw_10sway_focus_9is_vim_focused, METH_O, 0};
+static PyObject *__pyx_pw_10sway_focus_9is_vim_focused(PyObject *__pyx_self, PyObject *__pyx_v_root) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("is_vim_focused (wrapper)", 0);
-  __pyx_r = __pyx_pf_10sway_focus_6is_vim_focused(__pyx_self, ((PyObject *)__pyx_v_root));
+  __pyx_r = __pyx_pf_10sway_focus_8is_vim_focused(__pyx_self, ((PyObject *)__pyx_v_root));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_root) {
+static PyObject *__pyx_pf_10sway_focus_8is_vim_focused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_root) {
   PyObject *__pyx_v_child = NULL;
   PyObject *__pyx_v_temp = NULL;
   PyObject *__pyx_r = NULL;
@@ -3085,37 +3259,37 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("is_vim_focused", 0);
 
-  /* "sway_focus.pyx":70
+  /* "sway_focus.pyx":72
  * 
  * def is_vim_focused(root):
  *     if root["nodes"] == []:             # <<<<<<<<<<<<<<
  *         if "vim" in root["name"][:5] and root["focused"]:
  *             return root
  */
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_nodes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_nodes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "sway_focus.pyx":71
+    /* "sway_focus.pyx":73
  * def is_vim_focused(root):
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:             # <<<<<<<<<<<<<<
  *             return root
  *         return False
  */
-    __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_name); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_name); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = __Pyx_PyObject_GetSlice(__pyx_t_3, 0, 5, NULL, NULL, &__pyx_slice__8, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetSlice(__pyx_t_3, 0, 5, NULL, NULL, &__pyx_slice__8, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_vim, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_vim, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_6 = (__pyx_t_5 != 0);
     if (__pyx_t_6) {
@@ -3123,15 +3297,15 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
       __pyx_t_4 = __pyx_t_6;
       goto __pyx_L5_bool_binop_done;
     }
-    __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_focused); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_focused); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_4 = __pyx_t_6;
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_4) {
 
-      /* "sway_focus.pyx":72
+      /* "sway_focus.pyx":74
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:
  *             return root             # <<<<<<<<<<<<<<
@@ -3143,7 +3317,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
       __pyx_r = __pyx_v_root;
       goto __pyx_L0;
 
-      /* "sway_focus.pyx":71
+      /* "sway_focus.pyx":73
  * def is_vim_focused(root):
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:             # <<<<<<<<<<<<<<
@@ -3152,7 +3326,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
  */
     }
 
-    /* "sway_focus.pyx":73
+    /* "sway_focus.pyx":75
  *         if "vim" in root["name"][:5] and root["focused"]:
  *             return root
  *         return False             # <<<<<<<<<<<<<<
@@ -3164,7 +3338,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
     __pyx_r = Py_False;
     goto __pyx_L0;
 
-    /* "sway_focus.pyx":70
+    /* "sway_focus.pyx":72
  * 
  * def is_vim_focused(root):
  *     if root["nodes"] == []:             # <<<<<<<<<<<<<<
@@ -3173,22 +3347,22 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
  */
   }
 
-  /* "sway_focus.pyx":75
+  /* "sway_focus.pyx":77
  *         return False
  * 
  *     for child in root["nodes"]:             # <<<<<<<<<<<<<<
  *         temp = is_vim_focused(child)
  *         if temp:
  */
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_nodes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_root, __pyx_n_s_nodes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_3 = __pyx_t_2; __Pyx_INCREF(__pyx_t_3); __pyx_t_7 = 0;
     __pyx_t_8 = NULL;
   } else {
-    __pyx_t_7 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_7 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_8 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 77, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -3196,17 +3370,17 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_7 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 75, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 75, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -3216,7 +3390,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 75, __pyx_L1_error)
+          else __PYX_ERR(0, 77, __pyx_L1_error)
         }
         break;
       }
@@ -3225,14 +3399,14 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
     __Pyx_XDECREF_SET(__pyx_v_child, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "sway_focus.pyx":76
+    /* "sway_focus.pyx":78
  * 
  *     for child in root["nodes"]:
  *         temp = is_vim_focused(child)             # <<<<<<<<<<<<<<
  *         if temp:
  *             break
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_is_vim_focused); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_is_vim_focused); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_9 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
@@ -3246,23 +3420,23 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
     }
     __pyx_t_2 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_9, __pyx_v_child) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_child);
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF_SET(__pyx_v_temp, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "sway_focus.pyx":77
+    /* "sway_focus.pyx":79
  *     for child in root["nodes"]:
  *         temp = is_vim_focused(child)
  *         if temp:             # <<<<<<<<<<<<<<
  *             break
  *     return temp
  */
-    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_temp); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_temp); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 79, __pyx_L1_error)
     if (__pyx_t_4) {
 
-      /* "sway_focus.pyx":78
+      /* "sway_focus.pyx":80
  *         temp = is_vim_focused(child)
  *         if temp:
  *             break             # <<<<<<<<<<<<<<
@@ -3271,7 +3445,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
  */
       goto __pyx_L8_break;
 
-      /* "sway_focus.pyx":77
+      /* "sway_focus.pyx":79
  *     for child in root["nodes"]:
  *         temp = is_vim_focused(child)
  *         if temp:             # <<<<<<<<<<<<<<
@@ -3280,7 +3454,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
  */
     }
 
-    /* "sway_focus.pyx":75
+    /* "sway_focus.pyx":77
  *         return False
  * 
  *     for child in root["nodes"]:             # <<<<<<<<<<<<<<
@@ -3291,7 +3465,7 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
   __pyx_L8_break:;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "sway_focus.pyx":79
+  /* "sway_focus.pyx":81
  *         if temp:
  *             break
  *     return temp             # <<<<<<<<<<<<<<
@@ -3299,12 +3473,12 @@ static PyObject *__pyx_pf_10sway_focus_6is_vim_focused(CYTHON_UNUSED PyObject *_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_temp)) { __Pyx_RaiseUnboundLocalError("temp"); __PYX_ERR(0, 79, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_temp)) { __Pyx_RaiseUnboundLocalError("temp"); __PYX_ERR(0, 81, __pyx_L1_error) }
   __Pyx_INCREF(__pyx_v_temp);
   __pyx_r = __pyx_v_temp;
   goto __pyx_L0;
 
-  /* "sway_focus.pyx":69
+  /* "sway_focus.pyx":71
  * 
  * 
  * def is_vim_focused(root):             # <<<<<<<<<<<<<<
@@ -3392,6 +3566,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_connect, __pyx_k_connect, sizeof(__pyx_k_connect), 0, 0, 1, 1},
   {&__pyx_n_s_data, __pyx_k_data, sizeof(__pyx_k_data), 0, 0, 1, 1},
+  {&__pyx_n_s_default, __pyx_k_default, sizeof(__pyx_k_default), 0, 0, 1, 1},
   {&__pyx_n_s_delim, __pyx_k_delim, sizeof(__pyx_k_delim), 0, 0, 1, 1},
   {&__pyx_n_s_down, __pyx_k_down, sizeof(__pyx_k_down), 0, 0, 1, 1},
   {&__pyx_n_s_e, __pyx_k_e, sizeof(__pyx_k_e), 0, 0, 1, 1},
@@ -3467,9 +3642,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(0, 32, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 47, __pyx_L1_error)
-  __pyx_builtin_exit = __Pyx_GetBuiltinName(__pyx_n_s_exit); if (!__pyx_builtin_exit) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_builtin_exit = __Pyx_GetBuiltinName(__pyx_n_s_exit); if (!__pyx_builtin_exit) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 50, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -3479,50 +3654,50 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "sway_focus.pyx":47
+  /* "sway_focus.pyx":50
  *         except Exception as e:
  *             print(e)
  *             with open("erro.log", "w") as fp:             # <<<<<<<<<<<<<<
- *                 fp.write(data)
- *             exit()
+ *                 fp.write(str(e))
+ *             return None
  */
-  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_kp_s_erro_log, __pyx_n_s_w); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_kp_s_erro_log, __pyx_n_s_w); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
-  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "sway_focus.pyx":53
+  /* "sway_focus.pyx":55
  * 
  * def call_sock(p_type, message):
  *     magic = bytes("i3-ipc", "utf-8")             # <<<<<<<<<<<<<<
  * 
  *     message = bytes(message, "utf-8")
  */
-  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_kp_s_i3_ipc, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_kp_s_i3_ipc, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "sway_focus.pyx":57
+  /* "sway_focus.pyx":59
  *     message = bytes(message, "utf-8")
  *     p_type = p_type
  *     p_type = p_type.to_bytes(4, byteorder = sys.byteorder)             # <<<<<<<<<<<<<<
  *     length = len(message).to_bytes(4, byteorder = sys.byteorder)
  * 
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_int_4); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_int_4); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "sway_focus.pyx":71
+  /* "sway_focus.pyx":73
  * def is_vim_focused(root):
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:             # <<<<<<<<<<<<<<
  *             return root
  *         return False
  */
-  __pyx_slice__8 = PySlice_New(Py_None, __pyx_int_5, Py_None); if (unlikely(!__pyx_slice__8)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_slice__8 = PySlice_New(Py_None, __pyx_int_5, Py_None); if (unlikely(!__pyx_slice__8)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__8);
   __Pyx_GIVEREF(__pyx_slice__8);
 
@@ -3538,52 +3713,64 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__9);
   __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_recvall, 14, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 14, __pyx_L1_error)
 
-  /* "sway_focus.pyx":31
+  /* "sway_focus.pyx":30
+ *     return repr(data)
+ * 
+ * def default(arg):             # <<<<<<<<<<<<<<
+ *     re, sock = call_sock(0, f"focus {arg}")
+ * 
+ */
+  __pyx_tuple__11 = PyTuple_Pack(3, __pyx_n_s_arg, __pyx_n_s_re, __pyx_n_s_sock); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_default, 30, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 30, __pyx_L1_error)
+
+  /* "sway_focus.pyx":34
  * 
  * #convert response to json
  * def cleanup(sway_data):             # <<<<<<<<<<<<<<
  *     for index, char in enumerate(sway_data):
  *         if char == '[' or char == '{':
  */
-  __pyx_tuple__11 = PyTuple_Pack(8, __pyx_n_s_sway_data, __pyx_n_s_index, __pyx_n_s_char, __pyx_n_s_delim, __pyx_n_s_data, __pyx_n_s_json_2, __pyx_n_s_e, __pyx_n_s_fp); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__11);
-  __Pyx_GIVEREF(__pyx_tuple__11);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_cleanup, 31, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(8, __pyx_n_s_sway_data, __pyx_n_s_index, __pyx_n_s_char, __pyx_n_s_delim, __pyx_n_s_data, __pyx_n_s_json_2, __pyx_n_s_e, __pyx_n_s_fp); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_cleanup, 34, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 34, __pyx_L1_error)
 
-  /* "sway_focus.pyx":52
- *             return data
+  /* "sway_focus.pyx":54
+ *             return None
  * 
  * def call_sock(p_type, message):             # <<<<<<<<<<<<<<
  *     magic = bytes("i3-ipc", "utf-8")
  * 
  */
-  __pyx_tuple__13 = PyTuple_Pack(7, __pyx_n_s_p_type, __pyx_n_s_message, __pyx_n_s_magic, __pyx_n_s_length, __pyx_n_s_s, __pyx_n_s_data, __pyx_n_s_json_2); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 52, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_call_sock, 52, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(7, __pyx_n_s_p_type, __pyx_n_s_message, __pyx_n_s_magic, __pyx_n_s_length, __pyx_n_s_s, __pyx_n_s_data, __pyx_n_s_json_2); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__15);
+  __Pyx_GIVEREF(__pyx_tuple__15);
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_call_sock, 54, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 54, __pyx_L1_error)
 
-  /* "sway_focus.pyx":69
+  /* "sway_focus.pyx":71
  * 
  * 
  * def is_vim_focused(root):             # <<<<<<<<<<<<<<
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:
  */
-  __pyx_tuple__15 = PyTuple_Pack(3, __pyx_n_s_root, __pyx_n_s_child, __pyx_n_s_temp); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 69, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__15);
-  __Pyx_GIVEREF(__pyx_tuple__15);
-  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_is_vim_focused, 69, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(3, __pyx_n_s_root, __pyx_n_s_child, __pyx_n_s_temp); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_sway_focus_pyx, __pyx_n_s_is_vim_focused, 71, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 71, __pyx_L1_error)
 
-  /* "sway_focus.pyx":85
+  /* "sway_focus.pyx":87
  * arg = sys.argv[1]
  * 
  * response ,sock = call_sock(4, '["GET_TREE"]')             # <<<<<<<<<<<<<<
- * 
- * if not is_vim_focused(response):
+ * if response == None:
+ *     default(arg)
  */
-  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_int_4, __pyx_kp_s_GET_TREE); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 85, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__17);
-  __Pyx_GIVEREF(__pyx_tuple__17);
+  __pyx_tuple__19 = PyTuple_Pack(2, __pyx_int_4, __pyx_kp_s_GET_TREE); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -3992,43 +4179,55 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_recvall, __pyx_t_1) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":31
+  /* "sway_focus.pyx":30
+ *     return repr(data)
+ * 
+ * def default(arg):             # <<<<<<<<<<<<<<
+ *     re, sock = call_sock(0, f"focus {arg}")
+ * 
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_3default, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_default, __pyx_t_1) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "sway_focus.pyx":34
  * 
  * #convert response to json
  * def cleanup(sway_data):             # <<<<<<<<<<<<<<
  *     for index, char in enumerate(sway_data):
  *         if char == '[' or char == '{':
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_3cleanup, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_5cleanup, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_cleanup, __pyx_t_1) < 0) __PYX_ERR(0, 31, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_cleanup, __pyx_t_1) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":52
- *             return data
+  /* "sway_focus.pyx":54
+ *             return None
  * 
  * def call_sock(p_type, message):             # <<<<<<<<<<<<<<
  *     magic = bytes("i3-ipc", "utf-8")
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_5call_sock, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_7call_sock, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_call_sock, __pyx_t_1) < 0) __PYX_ERR(0, 52, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_call_sock, __pyx_t_1) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":69
+  /* "sway_focus.pyx":71
  * 
  * 
  * def is_vim_focused(root):             # <<<<<<<<<<<<<<
  *     if root["nodes"] == []:
  *         if "vim" in root["name"][:5] and root["focused"]:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_7is_vim_focused, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10sway_focus_9is_vim_focused, NULL, __pyx_n_s_sway_focus); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_vim_focused, __pyx_t_1) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_vim_focused, __pyx_t_1) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "sway_focus.pyx":82
+  /* "sway_focus.pyx":84
  * 
  * 
  * assert(len(sys.argv) > 1)             # <<<<<<<<<<<<<<
@@ -4037,48 +4236,48 @@ if (!__Pyx_RefNanny) {
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_argv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_argv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 82, __pyx_L1_error)
+    __pyx_t_3 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (unlikely(!((__pyx_t_3 > 1) != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 82, __pyx_L1_error)
+      __PYX_ERR(0, 84, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "sway_focus.pyx":83
+  /* "sway_focus.pyx":85
  * 
  * assert(len(sys.argv) > 1)
  * arg = sys.argv[1]             # <<<<<<<<<<<<<<
  * 
  * response ,sock = call_sock(4, '["GET_TREE"]')
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_argv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_argv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_arg, __pyx_t_2) < 0) __PYX_ERR(0, 83, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_arg, __pyx_t_2) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "sway_focus.pyx":85
+  /* "sway_focus.pyx":87
  * arg = sys.argv[1]
  * 
  * response ,sock = call_sock(4, '["GET_TREE"]')             # <<<<<<<<<<<<<<
- * 
- * if not is_vim_focused(response):
+ * if response == None:
+ *     default(arg)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
@@ -4087,7 +4286,7 @@ if (!__Pyx_RefNanny) {
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 85, __pyx_L1_error)
+      __PYX_ERR(0, 87, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -4100,15 +4299,15 @@ if (!__Pyx_RefNanny) {
     __Pyx_INCREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_t_4);
     #else
-    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -4116,7 +4315,7 @@ if (!__Pyx_RefNanny) {
     __Pyx_GOTREF(__pyx_t_2);
     index = 1; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L2_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_4);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     goto __pyx_L3_unpacking_done;
@@ -4124,137 +4323,189 @@ if (!__Pyx_RefNanny) {
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 85, __pyx_L1_error)
+    __PYX_ERR(0, 87, __pyx_L1_error)
     __pyx_L3_unpacking_done:;
   }
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_response, __pyx_t_2) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_response, __pyx_t_2) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_4) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_4) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "sway_focus.pyx":87
+  /* "sway_focus.pyx":88
+ * 
  * response ,sock = call_sock(4, '["GET_TREE"]')
+ * if response == None:             # <<<<<<<<<<<<<<
+ *     default(arg)
+ *     exit()
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_response); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (__pyx_t_7) {
+
+    /* "sway_focus.pyx":89
+ * response ,sock = call_sock(4, '["GET_TREE"]')
+ * if response == None:
+ *     default(arg)             # <<<<<<<<<<<<<<
+ *     exit()
+ * 
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_default); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_arg); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "sway_focus.pyx":90
+ * if response == None:
+ *     default(arg)
+ *     exit()             # <<<<<<<<<<<<<<
+ * 
+ * if not is_vim_focused(response):
+ */
+    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_builtin_exit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "sway_focus.pyx":88
+ * 
+ * response ,sock = call_sock(4, '["GET_TREE"]')
+ * if response == None:             # <<<<<<<<<<<<<<
+ *     default(arg)
+ *     exit()
+ */
+  }
+
+  /* "sway_focus.pyx":92
+ *     exit()
  * 
  * if not is_vim_focused(response):             # <<<<<<<<<<<<<<
  *     re, sock = call_sock(0, f"focus {arg}")
  *     print(re)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_is_vim_focused); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_response); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_is_vim_focused); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_response); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_8 = ((!__pyx_t_7) != 0);
   if (__pyx_t_8) {
 
-    /* "sway_focus.pyx":88
+    /* "sway_focus.pyx":93
  * 
  * if not is_vim_focused(response):
  *     re, sock = call_sock(0, f"focus {arg}")             # <<<<<<<<<<<<<<
  *     print(re)
  * else:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_arg); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_empty_unicode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_arg); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyUnicode_Concat(__pyx_kp_u_focus, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyUnicode_Concat(__pyx_kp_u_focus, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_int_0);
-    __Pyx_GIVEREF(__pyx_t_4);
-    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_4);
-    __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
+    __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if ((likely(PyTuple_CheckExact(__pyx_t_4))) || (PyList_CheckExact(__pyx_t_4))) {
-      PyObject* sequence = __pyx_t_4;
+    if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
+      PyObject* sequence = __pyx_t_1;
       Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 88, __pyx_L1_error)
+        __PYX_ERR(0, 93, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
+        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
       } else {
-        __pyx_t_1 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
+        __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
       }
-      __Pyx_INCREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_4);
       #else
-      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+      __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       #endif
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_5 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error)
+      __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 93, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
-      index = 0; __pyx_t_1 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_1)) goto __pyx_L5_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_1);
-      index = 1; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L5_unpacking_failed;
+      index = 0; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L6_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_2);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+      index = 1; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L6_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_4);
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
       __pyx_t_6 = NULL;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      goto __pyx_L6_unpacking_done;
-      __pyx_L5_unpacking_failed:;
+      goto __pyx_L7_unpacking_done;
+      __pyx_L6_unpacking_failed:;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 88, __pyx_L1_error)
-      __pyx_L6_unpacking_done:;
+      __PYX_ERR(0, 93, __pyx_L1_error)
+      __pyx_L7_unpacking_done:;
     }
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_2) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_2) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_4) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "sway_focus.pyx":89
+    /* "sway_focus.pyx":94
  * if not is_vim_focused(response):
  *     re, sock = call_sock(0, f"focus {arg}")
  *     print(re)             # <<<<<<<<<<<<<<
  * else:
  *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_re); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    if (__Pyx_PrintOne(0, __pyx_t_4) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_re); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (__Pyx_PrintOne(0, __pyx_t_1) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "sway_focus.pyx":87
- * response ,sock = call_sock(4, '["GET_TREE"]')
+    /* "sway_focus.pyx":92
+ *     exit()
  * 
  * if not is_vim_focused(response):             # <<<<<<<<<<<<<<
  *     re, sock = call_sock(0, f"focus {arg}")
  *     print(re)
  */
-    goto __pyx_L4;
+    goto __pyx_L5;
   }
 
-  /* "sway_focus.pyx":91
+  /* "sway_focus.pyx":96
  *     print(re)
  * else:
  *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')             # <<<<<<<<<<<<<<
@@ -4262,198 +4513,41 @@ if (!__Pyx_RefNanny) {
  *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
  */
   /*else*/ {
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_arg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_arg); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyUnicode_Concat(__pyx_kp_u_exec_swaymsg_unbindsym_Control, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_INCREF(__pyx_int_0);
-    __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_int_0);
-    __Pyx_GIVEREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_5);
-    __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 91, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyUnicode_Concat(__pyx_kp_u_exec_swaymsg_unbindsym_Control, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_t_5);
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
+    __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if ((likely(PyTuple_CheckExact(__pyx_t_5))) || (PyList_CheckExact(__pyx_t_5))) {
       PyObject* sequence = __pyx_t_5;
       Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 91, __pyx_L1_error)
-      }
-      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
-      } else {
-        __pyx_t_1 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
-      }
-      __Pyx_INCREF(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_4);
-      #else
-      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      #endif
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else {
-      Py_ssize_t index = -1;
-      __pyx_t_2 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_6 = Py_TYPE(__pyx_t_2)->tp_iternext;
-      index = 0; __pyx_t_1 = __pyx_t_6(__pyx_t_2); if (unlikely(!__pyx_t_1)) goto __pyx_L7_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_1);
-      index = 1; __pyx_t_4 = __pyx_t_6(__pyx_t_2); if (unlikely(!__pyx_t_4)) goto __pyx_L7_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_4);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_2), 2) < 0) __PYX_ERR(0, 91, __pyx_L1_error)
-      __pyx_t_6 = NULL;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      goto __pyx_L8_unpacking_done;
-      __pyx_L7_unpacking_failed:;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_6 = NULL;
-      if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 91, __pyx_L1_error)
-      __pyx_L8_unpacking_done:;
-    }
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_4) < 0) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-    /* "sway_focus.pyx":92
- * else:
- *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')
- *     print(re)             # <<<<<<<<<<<<<<
- *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
- *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')
- */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_re); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 92, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 92, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-
-    /* "sway_focus.pyx":93
- *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')
- *     print(re)
- *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")             # <<<<<<<<<<<<<<
- *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')
- *     print(re)
- */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_system); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_arg); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_FormatSimple(__pyx_t_2, __pyx_empty_unicode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyUnicode_Concat(__pyx_kp_u_wtype_M_ctrl, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-    /* "sway_focus.pyx":94
- *     print(re)
- *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
- *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')             # <<<<<<<<<<<<<<
- *     print(re)
- * 
- */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyTuple_New(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = 0;
-    __pyx_t_9 = 127;
-    __Pyx_INCREF(__pyx_kp_u_exec_swaymsg_bindsym_Control);
-    __pyx_t_3 += 29;
-    __Pyx_GIVEREF(__pyx_kp_u_exec_swaymsg_bindsym_Control);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_kp_u_exec_swaymsg_bindsym_Control);
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_arg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_10, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_9 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_9) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_9;
-    __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5);
-    __Pyx_GIVEREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-    __pyx_t_5 = 0;
-    __Pyx_INCREF(__pyx_kp_u_exec_python_dotfile_sway_nvim_s);
-    __pyx_t_3 += 45;
-    __Pyx_GIVEREF(__pyx_kp_u_exec_python_dotfile_sway_nvim_s);
-    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_kp_u_exec_python_dotfile_sway_nvim_s);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_arg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_9 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_10) > __pyx_t_9) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_10) : __pyx_t_9;
-    __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_10);
-    __Pyx_GIVEREF(__pyx_t_10);
-    PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_t_10);
-    __pyx_t_10 = 0;
-    __pyx_t_10 = __Pyx_PyUnicode_Join(__pyx_t_2, 4, __pyx_t_3, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_INCREF(__pyx_int_0);
-    __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
-    __Pyx_GIVEREF(__pyx_t_10);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_10);
-    __pyx_t_10 = 0;
-    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if ((likely(PyTuple_CheckExact(__pyx_t_10))) || (PyList_CheckExact(__pyx_t_10))) {
-      PyObject* sequence = __pyx_t_10;
-      Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
-      if (unlikely(size != 2)) {
-        if (size > 2) __Pyx_RaiseTooManyValuesError(2);
-        else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 94, __pyx_L1_error)
+        __PYX_ERR(0, 96, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -4466,50 +4560,207 @@ if (!__Pyx_RefNanny) {
       __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(__pyx_t_1);
       #else
-      __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+      __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+      __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
+      #endif
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    } else {
+      Py_ssize_t index = -1;
+      __pyx_t_4 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext;
+      index = 0; __pyx_t_2 = __pyx_t_6(__pyx_t_4); if (unlikely(!__pyx_t_2)) goto __pyx_L8_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_2);
+      index = 1; __pyx_t_1 = __pyx_t_6(__pyx_t_4); if (unlikely(!__pyx_t_1)) goto __pyx_L8_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_1);
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_4), 2) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+      __pyx_t_6 = NULL;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      goto __pyx_L9_unpacking_done;
+      __pyx_L8_unpacking_failed:;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_6 = NULL;
+      if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+      __PYX_ERR(0, 96, __pyx_L1_error)
+      __pyx_L9_unpacking_done:;
+    }
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_2) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "sway_focus.pyx":97
+ * else:
+ *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')
+ *     print(re)             # <<<<<<<<<<<<<<
+ *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
+ *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_re); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+    /* "sway_focus.pyx":98
+ *     re,sock = call_sock(0, f'exec swaymsg unbindsym Control+{sway_to_vim[arg]}')
+ *     print(re)
+ *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")             # <<<<<<<<<<<<<<
+ *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')
+ *     print(re)
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_system); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_arg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_4 = __Pyx_PyUnicode_Concat(__pyx_kp_u_wtype_M_ctrl, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "sway_focus.pyx":99
+ *     print(re)
+ *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
+ *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')             # <<<<<<<<<<<<<<
+ *     print(re)
+ * 
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_call_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_3 = 0;
+    __pyx_t_9 = 127;
+    __Pyx_INCREF(__pyx_kp_u_exec_swaymsg_bindsym_Control);
+    __pyx_t_3 += 29;
+    __Pyx_GIVEREF(__pyx_kp_u_exec_swaymsg_bindsym_Control);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_kp_u_exec_swaymsg_bindsym_Control);
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_sway_to_vim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_arg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_10 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_10, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_9 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_9) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_9;
+    __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_5);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_5);
+    __pyx_t_5 = 0;
+    __Pyx_INCREF(__pyx_kp_u_exec_python_dotfile_sway_nvim_s);
+    __pyx_t_3 += 45;
+    __Pyx_GIVEREF(__pyx_kp_u_exec_python_dotfile_sway_nvim_s);
+    PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_kp_u_exec_python_dotfile_sway_nvim_s);
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_arg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_10 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_9 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_10) > __pyx_t_9) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_10) : __pyx_t_9;
+    __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_10);
+    __Pyx_GIVEREF(__pyx_t_10);
+    PyTuple_SET_ITEM(__pyx_t_4, 3, __pyx_t_10);
+    __pyx_t_10 = 0;
+    __pyx_t_10 = __Pyx_PyUnicode_Join(__pyx_t_4, 4, __pyx_t_3, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_INCREF(__pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_t_10);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_10);
+    __pyx_t_10 = 0;
+    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if ((likely(PyTuple_CheckExact(__pyx_t_10))) || (PyList_CheckExact(__pyx_t_10))) {
+      PyObject* sequence = __pyx_t_10;
+      Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
+      if (unlikely(size != 2)) {
+        if (size > 2) __Pyx_RaiseTooManyValuesError(2);
+        else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+        __PYX_ERR(0, 99, __pyx_L1_error)
+      }
+      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+      if (likely(PyTuple_CheckExact(sequence))) {
+        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
+      } else {
+        __pyx_t_4 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
+      }
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_2);
+      #else
+      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
       #endif
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_5 = PyObject_GetIter(__pyx_t_10); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 94, __pyx_L1_error)
+      __pyx_t_5 = PyObject_GetIter(__pyx_t_10); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
-      index = 0; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L9_unpacking_failed;
+      index = 0; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L10_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_4);
+      index = 1; __pyx_t_2 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_2)) goto __pyx_L10_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_2);
-      index = 1; __pyx_t_1 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_1)) goto __pyx_L9_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_1);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
       __pyx_t_6 = NULL;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      goto __pyx_L10_unpacking_done;
-      __pyx_L9_unpacking_failed:;
+      goto __pyx_L11_unpacking_done;
+      __pyx_L10_unpacking_failed:;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 94, __pyx_L1_error)
-      __pyx_L10_unpacking_done:;
+      __PYX_ERR(0, 99, __pyx_L1_error)
+      __pyx_L11_unpacking_done:;
     }
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_2) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_4) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_2) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_sock, __pyx_t_1) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "sway_focus.pyx":95
+    /* "sway_focus.pyx":100
  *     os.system(f"wtype -M ctrl {sway_to_vim[arg]}")
  *     re,sock = call_sock(0, f'exec swaymsg bindsym Control+{sway_to_vim[arg]} exec python ~/dotfile/sway/nvim_sway_nav.py {arg}')
  *     print(re)             # <<<<<<<<<<<<<<
  * 
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_re); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 95, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_re); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 100, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
-    if (__Pyx_PrintOne(0, __pyx_t_10) < 0) __PYX_ERR(0, 95, __pyx_L1_error)
+    if (__Pyx_PrintOne(0, __pyx_t_10) < 0) __PYX_ERR(0, 100, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
-  __pyx_L4:;
+  __pyx_L5:;
 
   /* "sway_focus.pyx":1
  * import socket             # <<<<<<<<<<<<<<
@@ -4988,6 +5239,127 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
 }
 #endif
 
+/* PyDictVersioning */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
+    PyObject **dictptr = NULL;
+    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
+    if (offset) {
+#if CYTHON_COMPILING_IN_CPYTHON
+        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
+#else
+        dictptr = _PyObject_GetDictPtr(obj);
+#endif
+    }
+    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
+}
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
+        return 0;
+    return obj_dict_version == __Pyx_get_object_dict_version(obj);
+}
+#endif
+
+/* GetModuleGlobalName */
+#if CYTHON_USE_DICT_VERSIONS
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
+#else
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
+#endif
+{
+    PyObject *result;
+#if !CYTHON_AVOID_BORROWED_REFS
+#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
+    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    } else if (unlikely(PyErr_Occurred())) {
+        return NULL;
+    }
+#else
+    result = PyDict_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+#endif
+#else
+    result = PyObject_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+    PyErr_Clear();
+#endif
+    return __Pyx_GetBuiltinName(name);
+}
+
+/* RaiseTooManyValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
+}
+
+/* RaiseNeedMoreValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    PyErr_Format(PyExc_ValueError,
+                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
+                 index, (index == 1) ? "" : "s");
+}
+
+/* IterFinish */
+static CYTHON_INLINE int __Pyx_IterFinish(void) {
+#if CYTHON_FAST_THREAD_STATE
+    PyThreadState *tstate = __Pyx_PyThreadState_Current;
+    PyObject* exc_type = tstate->curexc_type;
+    if (unlikely(exc_type)) {
+        if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) {
+            PyObject *exc_value, *exc_tb;
+            exc_value = tstate->curexc_value;
+            exc_tb = tstate->curexc_traceback;
+            tstate->curexc_type = 0;
+            tstate->curexc_value = 0;
+            tstate->curexc_traceback = 0;
+            Py_DECREF(exc_type);
+            Py_XDECREF(exc_value);
+            Py_XDECREF(exc_tb);
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#else
+    if (unlikely(PyErr_Occurred())) {
+        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
+            PyErr_Clear();
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#endif
+}
+
+/* UnpackItemEndCheck */
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
+    if (unlikely(retval)) {
+        Py_DECREF(retval);
+        __Pyx_RaiseTooManyValuesError(expected);
+        return -1;
+    } else {
+        return __Pyx_IterFinish();
+    }
+    return 0;
+}
+
 /* PyIntBinop */
 #if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
@@ -5361,67 +5733,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_GetSlice(PyObject* obj,
         "'%.200s' object is unsliceable", Py_TYPE(obj)->tp_name);
 bad:
     return NULL;
-}
-
-/* PyDictVersioning */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
-    PyObject **dictptr = NULL;
-    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
-    if (offset) {
-#if CYTHON_COMPILING_IN_CPYTHON
-        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
-#else
-        dictptr = _PyObject_GetDictPtr(obj);
-#endif
-    }
-    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
-}
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
-        return 0;
-    return obj_dict_version == __Pyx_get_object_dict_version(obj);
-}
-#endif
-
-/* GetModuleGlobalName */
-#if CYTHON_USE_DICT_VERSIONS
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
-#else
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
-#endif
-{
-    PyObject *result;
-#if !CYTHON_AVOID_BORROWED_REFS
-#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
-    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    } else if (unlikely(PyErr_Occurred())) {
-        return NULL;
-    }
-#else
-    result = PyDict_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-#endif
-#else
-    result = PyObject_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-    PyErr_Clear();
-#endif
-    return __Pyx_GetBuiltinName(name);
 }
 
 /* GetTopmostException */
@@ -5813,66 +6124,6 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
     }
 #endif
     return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
-/* RaiseTooManyValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
-    PyErr_Format(PyExc_ValueError,
-                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
-}
-
-/* RaiseNeedMoreValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
-    PyErr_Format(PyExc_ValueError,
-                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
-                 index, (index == 1) ? "" : "s");
-}
-
-/* IterFinish */
-static CYTHON_INLINE int __Pyx_IterFinish(void) {
-#if CYTHON_FAST_THREAD_STATE
-    PyThreadState *tstate = __Pyx_PyThreadState_Current;
-    PyObject* exc_type = tstate->curexc_type;
-    if (unlikely(exc_type)) {
-        if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) {
-            PyObject *exc_value, *exc_tb;
-            exc_value = tstate->curexc_value;
-            exc_tb = tstate->curexc_traceback;
-            tstate->curexc_type = 0;
-            tstate->curexc_value = 0;
-            tstate->curexc_traceback = 0;
-            Py_DECREF(exc_type);
-            Py_XDECREF(exc_value);
-            Py_XDECREF(exc_tb);
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#else
-    if (unlikely(PyErr_Occurred())) {
-        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
-            PyErr_Clear();
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#endif
-}
-
-/* UnpackItemEndCheck */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    } else {
-        return __Pyx_IterFinish();
-    }
-    return 0;
 }
 
 /* ObjectGetItem */
